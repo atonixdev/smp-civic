@@ -176,7 +176,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FileUploadParser',
     ],
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
+        # 'django_filters.rest_framework.DjangoFilterBackend',  # Disabled temporarily
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
@@ -212,15 +212,15 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
 ])
 CORS_ALLOW_CREDENTIALS = True
 
-# Channels Configuration
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [env('REDIS_URL', default='redis://localhost:6379/0')],
-        },
-    },
-}
+# Channels Configuration (disabled temporarily)
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [env('REDIS_URL', default='redis://localhost:6379/0')],
+#         },
+#     },
+# }
 
 # Cache Configuration
 CACHES = {
@@ -234,17 +234,17 @@ CACHES = {
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # SESSION_CACHE_ALIAS = 'default'
 
-# Celery Configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/1')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/2')
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = True
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
-CELERY_TASK_SOFT_TIME_LIMIT = 60  # 1 minute
+# Celery Configuration (disabled temporarily)
+# CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/1')
+# CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/2')
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TIMEZONE = TIME_ZONE
+# CELERY_ENABLE_UTC = True
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+# CELERY_TASK_SOFT_TIME_LIMIT = 60  # 1 minute
 
 # Email Configuration
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -315,13 +315,13 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
-# Elasticsearch Configuration
-ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': env('ELASTICSEARCH_URL', default='localhost:9200'),
-        'timeout': 20,
-    },
-}
+# Elasticsearch Configuration (disabled temporarily)
+# ELASTICSEARCH_DSL = {
+#     'default': {
+#         'hosts': env('ELASTICSEARCH_URL', default='localhost:9200'),
+#         'timeout': 20,
+#     },
+# }
 
 # DRF Spectacular (API Documentation)
 SPECTACULAR_SETTINGS = {

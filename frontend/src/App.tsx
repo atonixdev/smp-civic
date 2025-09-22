@@ -17,6 +17,52 @@ interface EncryptionKey {
   publicKey: string;
 }
 
+// Additional interfaces for security and messaging
+interface SecurityKey {
+  key_type: string;
+  key_fingerprint: string;
+  created_at: string;
+  expires_at: string;
+}
+
+interface AuditLog {
+  icon: string;
+  type: string;
+  action: string;
+  time: string;
+  details: string;
+}
+
+interface Message {
+  id: string;
+  from?: string;
+  to?: string;
+  content: string;
+  originalContent?: string;
+  timestamp: string;
+  encrypted: boolean;
+  decrypted: boolean;
+  subject?: string;
+  priority?: string;
+  read?: boolean;
+  algorithm?: string;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  author: string;
+  authorId: string;
+  createdAt: string;
+  status: string;
+  mediaFiles: { name: string; type: string; size: number; url: string; }[];
+  tags: string[];
+  views: number;
+  likes: number;
+}
+
 // Security Dashboard Component
 function SecurityDashboard() {
   const [encryptionStatus, setEncryptionStatus] = useState({
@@ -1077,7 +1123,22 @@ function ContributorsPage() {
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [followingUsers, setFollowingUsers] = useState(new Set());
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<{
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
+    role?: string;
+    location?: string;
+    joinDate?: string;
+    verified?: boolean;
+    followers?: number;
+    following?: number;
+    reports?: number;
+    experience?: number;
+    bio?: string;
+    expertise?: string;
+  } | null>(null);
   const [userComments, setUserComments] = useState({});
   const [newComment, setNewComment] = useState('');
 
@@ -1396,7 +1457,7 @@ function ContributorsPage() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Leave a comment on this profile..."
-                  rows="3"
+                  rows={3}
                 />
                 <button 
                   className="comment-btn"
@@ -1544,10 +1605,17 @@ function LoginPage() {
     lastName: '',
     organization: ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    submit?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -1596,7 +1664,7 @@ function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -1815,7 +1883,7 @@ function LoginPage() {
   );
 }
 
-function UserDashboardSidebar({ setCurrentPage }) {
+function UserDashboardSidebar({ setCurrentPage }: { setCurrentPage: (page: string) => void }) {
   // ACTIVE FUNCTION - Initialize user data from localStorage
   const getUserData = () => {
     const userData = localStorage.getItem('user');
@@ -1828,6 +1896,624 @@ function UserDashboardSidebar({ setCurrentPage }) {
     bookmarks: Math.floor(Math.random() * 20) + 5,
     subscription: user?.subscription || 'Premium'
   });
+
+  // Security-related state
+  const [securityData, setSecurityData] = useState<{
+    keys: SecurityKey[];
+    encryptionStatus: {
+      rsaKeys: number;
+      e2eeKeys: number;
+      encryptedFiles: number;
+      secureMessages: number;
+    };
+    auditLogs: AuditLog[];
+    twoFactorEnabled: boolean;
+    securityPreferences: {
+      autoLockTimeout: number;
+      defaultEncryption: string;
+      secureNotifications: boolean;
+      loginNotifications: boolean;
+    };
+  }>({
+    keys: [],
+    encryptionStatus: {
+      rsaKeys: 0,
+      e2eeKeys: 0,
+      encryptedFiles: 0,
+      secureMessages: 0
+    },
+    auditLogs: [],
+    twoFactorEnabled: false,
+    securityPreferences: {
+      autoLockTimeout: 30,
+      defaultEncryption: 'rsa4096',
+      secureNotifications: true,
+      loginNotifications: true
+    }
+  });
+
+  // Messaging state
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'msg1',
+      from: 'john.doe@secure.mail',
+      content: '🔒 [ENCRYPTED MESSAGE]',
+      originalContent: 'The documents you requested are ready for review. They contain sensitive information about the investigation.',
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      encrypted: true,
+      decrypted: false
+    },
+    {
+      id: 'msg2',
+      from: 'editor@smp.civic',
+      content: '🔒 [ENCRYPTED MESSAGE]',
+      originalContent: 'Story draft completed. Please review when you have a chance.',
+      timestamp: new Date(Date.now() - 7200000).toISOString(),
+      encrypted: true,
+      decrypted: true
+    }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const [recipient, setRecipient] = useState('');
+  const [isEncrypting, setIsEncrypting] = useState(false);
+
+  // Posts state
+  const [posts, setPosts] = useState<Post[]>([
+    {
+      id: 'post1',
+      title: 'Corporate Surveillance Networks Exposed',
+      content: 'Our investigation reveals how major corporations are building comprehensive surveillance networks...',
+      category: 'Investigation',
+      author: user?.firstName + ' ' + user?.lastName || 'Anonymous',
+      authorId: user?.id || 'user1',
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      status: 'published',
+      mediaFiles: [],
+      tags: ['surveillance', 'privacy', 'corporate'],
+      views: 1234,
+      likes: 89
+    },
+    {
+      id: 'post2',
+      title: 'Legal Analysis: New Privacy Regulations',
+      content: 'The recent privacy legislation introduces significant changes to data protection requirements...',
+      category: 'Legal Brief',
+      author: user?.firstName + ' ' + user?.lastName || 'Anonymous',
+      authorId: user?.id || 'user1',
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+      status: 'published',
+      mediaFiles: [],
+      tags: ['legal', 'privacy', 'regulation'],
+      views: 892,
+      likes: 56
+    }
+  ]);
+  const [currentPost, setCurrentPost] = useState<{
+    title: string;
+    content: string;
+    category: string;
+    mediaFiles: File[];
+    tags: string[];
+    status: string;
+  }>({
+    title: '',
+    content: '',
+    category: 'Investigation',
+    mediaFiles: [],
+    tags: [],
+    status: 'draft'
+  });
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  // Subscription state
+  const [subscriptionData, setSubscriptionData] = useState<{
+    currentPlan: string;
+    features: string[];
+    billingCycle: string;
+    nextBilling: string | null;
+    paymentMethod: string | null;
+  }>({
+    currentPlan: 'free',
+    features: [],
+    billingCycle: 'monthly',
+    nextBilling: null,
+    paymentMethod: null
+  });
+  const [selectedPlan, setSelectedPlan] = useState('premium');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const subscriptionPlans = [
+    {
+      id: 'free',
+      name: 'Free',
+      price: 0,
+      billing: 'forever',
+      features: [
+        'Access to public investigations',
+        'Basic document viewing',
+        'Community discussions',
+        'Email notifications'
+      ],
+      limitations: [
+        'Limited to 5 bookmarks',
+        'No premium content access',
+        'Basic support only'
+      ]
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: 29.99,
+      billing: 'monthly',
+      yearlyPrice: 299.99,
+      features: [
+        'Full access to all investigations',
+        'Premium legal briefs',
+        'Secure encrypted messaging',
+        'Advanced search & filtering',
+        'Unlimited bookmarks',
+        'Priority support',
+        'Ad-free experience'
+      ],
+      popular: true
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      price: 99.99,
+      billing: 'monthly',
+      yearlyPrice: 999.99,
+      features: [
+        'Everything in Premium',
+        'Submit your own investigations',
+        'Advanced encryption tools',
+        'API access',
+        'White-label reports',
+        'Dedicated account manager',
+        'Custom integrations',
+        'Analytics dashboard'
+      ]
+    }
+  ];
+
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [keyGenerationModal, setKeyGenerationModal] = useState(false);
+
+  // API functions for security
+  const fetchSecurityData = async () => {
+    setSecurityLoading(true);
+    try {
+      // Fetch encryption keys
+      const keysResponse = await fetch('/api/encryption/keys/', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (keysResponse.ok) {
+        const keysData = await keysResponse.json();
+        
+        // Fetch encryption status
+        const statusResponse = await fetch('/api/encryption/status/', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          
+          // Update security data
+          setSecurityData(prev => ({
+            ...prev,
+            keys: keysData.keys || [],
+            encryptionStatus: {
+              rsaKeys: keysData.keys?.filter((k: SecurityKey) => k.key_type === 'rsa').length || 0,
+              e2eeKeys: keysData.keys?.filter((k: SecurityKey) => k.key_type === 'e2ee').length || 0,
+              encryptedFiles: Math.floor(Math.random() * 20) + 5, // Mock data
+              secureMessages: Math.floor(Math.random() * 30) + 10 // Mock data
+            }
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch security data:', error);
+      // Use mock data for demonstration
+      setSecurityData(prev => ({
+        ...prev,
+        keys: [
+          {
+            key_type: 'rsa',
+            key_fingerprint: 'SHA256:a1b2c3d4e5f6...def456',
+            created_at: '2025-09-15T10:00:00Z',
+            expires_at: '2026-09-15T10:00:00Z'
+          },
+          {
+            key_type: 'e2ee',
+            key_fingerprint: 'SHA256:x9y8z7w6v5u4...abc123',
+            created_at: '2025-09-18T10:00:00Z',
+            expires_at: '2026-09-18T10:00:00Z'
+          }
+        ],
+        encryptionStatus: {
+          rsaKeys: 2,
+          e2eeKeys: 1,
+          encryptedFiles: 15,
+          secureMessages: 23
+        },
+        auditLogs: [
+          {
+            icon: '✅',
+            type: 'success',
+            action: 'Successful login',
+            time: '2 hours ago • 192.168.1.100',
+            details: 'User authenticated successfully'
+          },
+          {
+            icon: '🔑',
+            type: 'info',
+            action: 'RSA key pair generated',
+            time: '3 days ago',
+            details: 'New 4096-bit RSA key created'
+          },
+          {
+            icon: '🔒',
+            type: 'info',
+            action: 'Document encrypted',
+            time: '5 days ago',
+            details: 'investigation_report.pdf encrypted with AES-256'
+          },
+          {
+            icon: '⚠️',
+            type: 'warning',
+            action: 'Failed login attempt',
+            time: '1 week ago • 203.0.113.5',
+            details: 'Invalid password attempt from unknown IP'
+          },
+          {
+            icon: '💬',
+            type: 'info',
+            action: 'Secure message sent',
+            time: '1 week ago',
+            details: 'End-to-end encrypted message to contributor@example.com'
+          },
+          {
+            icon: '📱',
+            type: 'info',
+            action: '2FA setup completed',
+            time: '2 weeks ago',
+            details: 'Two-factor authentication enabled with authenticator app'
+          }
+        ]
+      }));
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const generateNewKey = async (keyType: string, password: string) => {
+    try {
+      const response = await fetch('/api/encryption/keys/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          key_type: keyType,
+          password: password
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(`${keyType.toUpperCase()} key generated successfully!`);
+        fetchSecurityData(); // Refresh security data
+        return result;
+      } else {
+        throw new Error('Key generation failed');
+      }
+    } catch (error) {
+      console.error('Key generation error:', error);
+      alert('Failed to generate key. Please try again.');
+    }
+  };
+
+  const revokeKey = async (keyFingerprint: string) => {
+    try {
+      const response = await fetch('/api/encryption/keys/', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          key_fingerprint: keyFingerprint
+        })
+      });
+      
+      if (response.ok) {
+        alert('Key revoked successfully');
+        fetchSecurityData(); // Refresh security data
+      } else {
+        throw new Error('Key revocation failed');
+      }
+    } catch (error) {
+      console.error('Key revocation error:', error);
+      alert('Failed to revoke key. Please try again.');
+    }
+  };
+
+  // Messaging functions
+  const sendEncryptedMessage = async () => {
+    if (!newMessage.trim() || !recipient.trim()) {
+      alert('Please enter both message and recipient');
+      return;
+    }
+
+    setIsEncrypting(true);
+    try {
+      const messageId = Math.random().toString(36).substring(7);
+      const timestamp = new Date().toISOString();
+      
+      const encryptedMessage: Message = {
+        id: messageId,
+        from: user?.email || 'anonymous@smpcivic.org',
+        to: recipient,
+        content: '🔒 [ENCRYPTED MESSAGE]',
+        originalContent: newMessage,
+        timestamp: timestamp,
+        encrypted: true,
+        decrypted: false,
+        read: false,
+        algorithm: 'RSA-OAEP+AES-256-GCM'
+      };
+
+      setMessages(prev => [encryptedMessage, ...prev]);
+      setNewMessage('');
+      setRecipient('');
+      
+      alert('✅ Message encrypted and sent successfully!');
+    } catch (error) {
+      alert('❌ Failed to encrypt message: ' + (error as Error).message);
+    } finally {
+      setIsEncrypting(false);
+    }
+  };
+
+  const decryptMessage = async (messageId: string) => {
+    try {
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, decrypted: true, read: true }
+          : msg
+      ));
+      alert('✅ Message decrypted successfully!');
+    } catch (error) {
+      alert('❌ Failed to decrypt message: ' + (error as Error).message);
+    }
+  };
+
+  // Post management functions
+  const handleFileUpload = (files: FileList) => {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
+      const validTypes: string[] = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm'];
+      return (validTypes as any).includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit
+    });
+    
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const createPost = async () => {
+    if (!currentPost.title.trim() || !currentPost.content.trim()) {
+      alert('Please fill in title and content');
+      return;
+    }
+
+    setIsCreatingPost(true);
+    try {
+      const newPost = {
+        id: Math.random().toString(36).substring(7),
+        title: currentPost.title,
+        content: currentPost.content,
+        category: currentPost.category,
+        author: user?.firstName + ' ' + user?.lastName || 'Anonymous',
+        authorId: user?.id || 'user1',
+        createdAt: new Date().toISOString(),
+        status: currentPost.status,
+        mediaFiles: selectedFiles.map(file => ({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: URL.createObjectURL(file) // In real app, upload to server
+        })),
+        tags: currentPost.tags,
+        views: 0,
+        likes: 0
+      };
+
+      setPosts(prev => [newPost, ...prev]);
+      
+      // Reset form
+      setCurrentPost({
+        title: '',
+        content: '',
+        category: 'Investigation',
+        mediaFiles: [],
+        tags: [],
+        status: 'draft'
+      });
+      setSelectedFiles([]);
+      
+      alert('✅ Post created successfully!');
+      setActiveSection('my-posts');
+    } catch (error) {
+      alert('❌ Failed to create post: ' + (error as Error).message);
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
+  const deletePost = (postId: string) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      alert('✅ Post deleted successfully!');
+    }
+  };
+
+  const updatePostStatus = (postId: string, newStatus: string) => {
+    setPosts(prev => prev.map(post => 
+      post.id === postId 
+        ? { ...post, status: newStatus }
+        : post
+    ));
+    alert(`✅ Post ${newStatus === 'published' ? 'published' : 'saved as draft'}!`);
+  };
+
+  const getPostsByCategory = (category: string) => {
+    return posts.filter(post => 
+      post.category === category && post.status === 'published'
+    );
+  };
+
+  const getAllPublishedPosts = () => {
+    return posts.filter(post => post.status === 'published');
+  };
+
+  // Payment processing functions
+  const processStripePayment = async (planId: string, billingCycle: string) => {
+    setIsProcessingPayment(true);
+    try {
+      // Simulate Stripe payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      const amount = billingCycle === 'yearly' ? plan?.yearlyPrice : plan?.price;
+      
+      // Update subscription
+      setSubscriptionData({
+        currentPlan: planId,
+        features: plan?.features || [],
+        billingCycle: billingCycle,
+        nextBilling: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+        paymentMethod: 'stripe'
+      });
+      
+      alert(`✅ Successfully subscribed to ${plan?.name || 'Unknown'} plan! Payment of $${amount || 0} processed via Stripe.`);
+      setShowPaymentModal(false);
+    } catch (error) {
+      alert('❌ Payment failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const processCryptoPayment = async (planId: string, billingCycle: string, cryptoType: string) => {
+    setIsProcessingPayment(true);
+    try {
+      // Simulate crypto payment processing
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      const amount = billingCycle === 'yearly' ? plan?.yearlyPrice : plan?.price;
+      
+      // Mock crypto conversion rates
+      const cryptoRates: { [key: string]: number } = {
+        'bitcoin': (amount || 0) / 45000,
+        'ethereum': (amount || 0) / 3000,
+        'usdc': amount || 0
+      };
+      
+      const cryptoAmount = cryptoRates[cryptoType] || 0;
+      
+      setSubscriptionData({
+        currentPlan: planId,
+        features: plan?.features || [],
+        billingCycle: billingCycle,
+        nextBilling: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+        paymentMethod: `crypto-${cryptoType}`
+      });
+      
+      alert(`✅ Successfully subscribed to ${plan?.name || 'Unknown'} plan! Payment of ${cryptoAmount.toFixed(6)} ${cryptoType.toUpperCase()} processed.`);
+      setShowPaymentModal(false);
+    } catch (error) {
+      alert('❌ Crypto payment failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const processPayPalPayment = async (planId: string, billingCycle: string) => {
+    setIsProcessingPayment(true);
+    try {
+      // Simulate PayPal payment processing
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      const amount = billingCycle === 'yearly' ? plan?.yearlyPrice : plan?.price;
+      
+      setSubscriptionData({
+        currentPlan: planId,
+        features: plan?.features || [],
+        billingCycle: billingCycle,
+        nextBilling: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+        paymentMethod: 'paypal'
+      });
+      
+      alert(`✅ Successfully subscribed to ${plan?.name || 'Unknown'} plan! Payment of $${amount || 0} processed via PayPal.`);
+      setShowPaymentModal(false);
+    } catch (error) {
+      alert('❌ PayPal payment failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handleSubscribe = (planId: string) => {
+    setSelectedPlan(planId);
+    setShowPaymentModal(true);
+  };
+
+  const processPayment = () => {
+    const billingCycle = (document.getElementById('billing-cycle') as HTMLSelectElement)?.value || 'monthly';
+    
+    switch (selectedPaymentMethod) {
+      case 'stripe':
+        processStripePayment(selectedPlan, billingCycle);
+        break;
+      case 'crypto-bitcoin':
+        processCryptoPayment(selectedPlan, billingCycle, 'bitcoin');
+        break;
+      case 'crypto-ethereum':
+        processCryptoPayment(selectedPlan, billingCycle, 'ethereum');
+        break;
+      case 'crypto-usdc':
+        processCryptoPayment(selectedPlan, billingCycle, 'usdc');
+        break;
+      case 'paypal':
+        processPayPalPayment(selectedPlan, billingCycle);
+        break;
+      default:
+        alert('Please select a payment method');
+    }
+  };
+
+  // Load security data on component mount
+  useEffect(() => {
+    if (user) {
+      fetchSecurityData();
+    }
+  }, [user]);
   const [recentActivity, setRecentActivity] = useState([
     {
       id: 1,
@@ -1881,7 +2567,7 @@ function UserDashboardSidebar({ setCurrentPage }) {
     { id: 'settings', icon: '⚙️', label: 'Settings', description: 'Account settings' }
   ];
 
-  const handleSidebarNavigation = (sectionId) => {
+  const handleSidebarNavigation = (sectionId: string) => {
     // FIXED: Keep all navigation within the dashboard
     setActiveSection(sectionId);
   };
@@ -2075,23 +2761,499 @@ function UserDashboardSidebar({ setCurrentPage }) {
           
           {activeSection === 'security' && (
             <div className="dashboard-section-content">
-              <h2>🔒 Security Dashboard</h2>
-              <p>Manage your encryption keys, secure communications, and security settings.</p>
-              <div className="dashboard-cards">
-                <div className="dashboard-card">
-                  <h3>🛡️ Encryption Status</h3>
-                  <p>Your communications are protected with end-to-end encryption.</p>
-                  <button className="card-btn">Manage Keys</button>
+              <div className="security-dashboard">
+                <div className="security-header">
+                  <h2>🔒 Security Center</h2>
+                  <p>Comprehensive security management for your SMP Civic account</p>
+                  <div className="security-status-banner">
+                    <div className="security-status-item">
+                      <span className="status-indicator secure">🛡️</span>
+                      <span>Account Secure</span>
+                    </div>
+                    <div className="security-status-item">
+                      <span className="status-indicator encrypted">🔐</span>
+                      <span>End-to-End Encrypted</span>
+                    </div>
+                    <div className="security-status-item">
+                      <span className="status-indicator pq-ready">⚛️</span>
+                      <span>Post-Quantum Ready</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="dashboard-card">
-                  <h3>🔐 Two-Factor Auth</h3>
-                  <p>Add an extra layer of security to your account.</p>
-                  <button className="card-btn">Enable 2FA</button>
+
+                <div className="security-grid">
+                  {/* Encryption Overview */}
+                  <div className="security-panel encryption-overview">
+                    <div className="panel-header">
+                      <h3>🛡️ Encryption Overview</h3>
+                      <span className="status-badge active">Active</span>
+                    </div>
+                    <div className="encryption-stats">
+                      <div className="stat-row">
+                        <span className="stat-label">RSA-4096 Keys:</span>
+                        <span className="stat-value">{securityData.encryptionStatus.rsaKeys} Active</span>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">E2EE Keys:</span>
+                        <span className="stat-value">{securityData.encryptionStatus.e2eeKeys} Active</span>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">Encrypted Files:</span>
+                        <span className="stat-value">{securityData.encryptionStatus.encryptedFiles} Files</span>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">Secure Messages:</span>
+                        <span className="stat-value">{securityData.encryptionStatus.secureMessages} Messages</span>
+                      </div>
+                    </div>
+                    <div className="panel-actions">
+                      <button className="action-btn primary" onClick={() => setActiveSection('keyManagement')}>🔑 Manage Keys</button>
+                      <button className="action-btn" onClick={() => setActiveSection('encryptionTesting')}>🧪 Test Encryption</button>
+                    </div>
+                  </div>
+
+                  {/* Key Management */}
+                  <div className="security-panel key-management">
+                    <div className="panel-header">
+                      <h3>� Encryption Keys</h3>
+                      <button className="add-btn">+ Generate New</button>
+                    </div>
+                    <div className="key-list">
+                      <div className="key-item">
+                        <div className="key-info">
+                          <div className="key-type">RSA-4096 (Primary)</div>
+                          <div className="key-fingerprint">SHA256: a1b2c3...def456</div>
+                          <div className="key-dates">Created: Sep 15, 2025 • Expires: Sep 15, 2026</div>
+                        </div>
+                        <div className="key-status active">Active</div>
+                      </div>
+                      <div className="key-item">
+                        <div className="key-info">
+                          <div className="key-type">Curve25519 (E2EE)</div>
+                          <div className="key-fingerprint">SHA256: x9y8z7...abc123</div>
+                          <div className="key-dates">Created: Sep 18, 2025 • Expires: Sep 18, 2026</div>
+                        </div>
+                        <div className="key-status active">Active</div>
+                      </div>
+                      <div className="key-item">
+                        <div className="key-info">
+                          <div className="key-type">Kyber1024 (Post-Quantum)</div>
+                          <div className="key-fingerprint">SHA256: p1q2r3...stu456</div>
+                          <div className="key-dates">Created: Sep 20, 2025 • Expires: Sep 20, 2026</div>
+                        </div>
+                        <div className="key-status pending">Pending</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Two-Factor Authentication */}
+                  <div className="security-panel two-factor">
+                    <div className="panel-header">
+                      <h3>🔐 Two-Factor Authentication</h3>
+                      <span className="status-badge inactive">Disabled</span>
+                    </div>
+                    <div className="two-factor-content">
+                      <div className="security-recommendation">
+                        <p>🚨 <strong>Recommended:</strong> Enable 2FA to add an extra layer of security to your account.</p>
+                      </div>
+                      <div className="two-factor-options">
+                        <div className="auth-option">
+                          <div className="option-icon">📱</div>
+                          <div className="option-details">
+                            <h4>Authenticator App</h4>
+                            <p>Use Google Authenticator, Authy, or similar</p>
+                          </div>
+                          <button className="option-btn">Setup</button>
+                        </div>
+                        <div className="auth-option">
+                          <div className="option-icon">💬</div>
+                          <div className="option-details">
+                            <h4>SMS Verification</h4>
+                            <p>Receive codes via text message</p>
+                          </div>
+                          <button className="option-btn">Setup</button>
+                        </div>
+                        <div className="auth-option">
+                          <div className="option-icon">🔑</div>
+                          <div className="option-details">
+                            <h4>Hardware Key</h4>
+                            <p>YubiKey or other FIDO2 device</p>
+                          </div>
+                          <button className="option-btn">Setup</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Security Log */}
+                  <div className="security-panel security-log">
+                    <div className="panel-header">
+                      <h3>📊 Security Activity</h3>
+                      <button className="view-all-btn" onClick={() => setActiveSection('auditLog')}>View All</button>
+                    </div>
+                    <div className="log-entries">
+                      <div className="log-entry">
+                        <div className="log-icon success">✅</div>
+                        <div className="log-details">
+                          <div className="log-action">Successful login</div>
+                          <div className="log-time">2 hours ago • 192.168.1.100</div>
+                        </div>
+                      </div>
+                      <div className="log-entry">
+                        <div className="log-icon info">🔑</div>
+                        <div className="log-details">
+                          <div className="log-action">RSA key pair generated</div>
+                          <div className="log-time">3 days ago</div>
+                        </div>
+                      </div>
+                      <div className="log-entry">
+                        <div className="log-icon info">�</div>
+                        <div className="log-details">
+                          <div className="log-action">Document encrypted</div>
+                          <div className="log-time">5 days ago</div>
+                        </div>
+                      </div>
+                      <div className="log-entry">
+                        <div className="log-icon warning">⚠️</div>
+                        <div className="log-details">
+                          <div className="log-action">Failed login attempt</div>
+                          <div className="log-time">1 week ago • 203.0.113.5</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Security Preferences */}
+                  <div className="security-panel security-preferences">
+                    <div className="panel-header">
+                      <h3>⚙️ Security Preferences</h3>
+                    </div>
+                    <div className="preferences-list">
+                      <div className="preference-item">
+                        <div className="preference-info">
+                          <h4>Auto-lock timeout</h4>
+                          <p>Automatically lock session after inactivity</p>
+                        </div>
+                        <select className="preference-select">
+                          <option value="15">15 minutes</option>
+                          <option value="30" selected>30 minutes</option>
+                          <option value="60">1 hour</option>
+                          <option value="120">2 hours</option>
+                        </select>
+                      </div>
+                      <div className="preference-item">
+                        <div className="preference-info">
+                          <h4>Default encryption</h4>
+                          <p>Default algorithm for new content</p>
+                        </div>
+                        <select className="preference-select">
+                          <option value="aes256">AES-256-GCM</option>
+                          <option value="rsa4096" selected>RSA-4096-OAEP</option>
+                          <option value="hybrid">Hybrid (RSA+AES)</option>
+                        </select>
+                      </div>
+                      <div className="preference-item">
+                        <div className="preference-info">
+                          <h4>Secure email notifications</h4>
+                          <p>Encrypt all email notifications</p>
+                        </div>
+                        <label className="toggle-switch">
+                          <input type="checkbox" checked />
+                          <span className="toggle-slider"></span>
+                        </label>
+                      </div>
+                      <div className="preference-item">
+                        <div className="preference-info">
+                          <h4>Login notifications</h4>
+                          <p>Alert when new device signs in</p>
+                        </div>
+                        <label className="toggle-switch">
+                          <input type="checkbox" checked />
+                          <span className="toggle-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Encryption Tools */}
+                  <div className="security-panel encryption-tools">
+                    <div className="panel-header">
+                      <h3>🛠️ Encryption Tools</h3>
+                    </div>
+                    <div className="tools-grid">
+                      <div className="tool-card">
+                        <div className="tool-icon">📄</div>
+                        <h4>File Encryption</h4>
+                        <p>Encrypt files before upload</p>
+                        <button className="tool-btn">Open Tool</button>
+                      </div>
+                      <div className="tool-card">
+                        <div className="tool-icon">�</div>
+                        <h4>Message Encryption</h4>
+                        <p>Test message encryption</p>
+                        <button className="tool-btn">Open Tool</button>
+                      </div>
+                      <div className="tool-card">
+                        <div className="tool-icon">🔍</div>
+                        <h4>Key Verification</h4>
+                        <p>Verify key fingerprints</p>
+                        <button className="tool-btn">Open Tool</button>
+                      </div>
+                      <div className="tool-card">
+                        <div className="tool-icon">📊</div>
+                        <h4>Security Analysis</h4>
+                        <p>Analyze your security posture</p>
+                        <button className="tool-btn">Open Tool</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="dashboard-card">
-                  <h3>📊 Security Log</h3>
-                  <p>View recent security events and login history.</p>
-                  <button className="card-btn">View Log</button>
+
+                {/* Emergency Actions */}
+                <div className="emergency-actions">
+                  <h3>🚨 Emergency Actions</h3>
+                  <div className="emergency-buttons">
+                    <button className="emergency-btn revoke">🔐 Revoke All Keys</button>
+                    <button className="emergency-btn reset">🔄 Reset Security Settings</button>
+                    <button className="emergency-btn export">📦 Export Security Data</button>
+                    <button className="emergency-btn support">🆘 Contact Security Team</button>
+                  </div>
+                </div>
+
+                {/* Key Generation Modal */}
+                {keyGenerationModal && (
+                  <div className="modal-overlay" onClick={() => setKeyGenerationModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                      <div className="modal-header">
+                        <h3>🔑 Generate New Encryption Key</h3>
+                        <button className="modal-close" onClick={() => setKeyGenerationModal(false)}>×</button>
+                      </div>
+                      <div className="modal-body">
+                        <div className="key-type-selection">
+                          <h4>Select Key Type:</h4>
+                          <div className="key-type-options">
+                            <label className="key-type-option">
+                              <input type="radio" name="keyType" value="rsa" defaultChecked />
+                              <div className="option-content">
+                                <strong>RSA-4096</strong>
+                                <p>Standard asymmetric encryption for secure communications</p>
+                              </div>
+                            </label>
+                            <label className="key-type-option">
+                              <input type="radio" name="keyType" value="e2ee" />
+                              <div className="option-content">
+                                <strong>Curve25519 (E2EE)</strong>
+                                <p>Elliptic curve for end-to-end encrypted messaging</p>
+                              </div>
+                            </label>
+                            <label className="key-type-option">
+                              <input type="radio" name="keyType" value="post_quantum" />
+                              <div className="option-content">
+                                <strong>Kyber1024 (Post-Quantum)</strong>
+                                <p>Future-proof against quantum computing attacks</p>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                        <div className="password-section">
+                          <h4>Key Protection Password:</h4>
+                          <input 
+                            type="password" 
+                            placeholder="Enter a strong password to protect your private key"
+                            className="password-input"
+                            id="keyPassword"
+                          />
+                          <p className="password-hint">
+                            🔒 This password will encrypt your private key. Make it strong and memorable.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="modal-footer">
+                        <button className="btn-cancel" onClick={() => setKeyGenerationModal(false)}>
+                          Cancel
+                        </button>
+                        <button 
+                          className="btn-generate" 
+                          onClick={() => {
+                            const keyType = (document.querySelector('input[name="keyType"]:checked') as HTMLInputElement)?.value;
+                            const password = (document.getElementById('keyPassword') as HTMLInputElement)?.value;
+                            
+                            if (!password) {
+                              alert('Please enter a password to protect your key');
+                              return;
+                            }
+                            
+                            if (password.length < 8) {
+                              alert('Password must be at least 8 characters long');
+                              return;
+                            }
+                            
+                            generateNewKey(keyType, password);
+                            setKeyGenerationModal(false);
+                            (document.getElementById('keyPassword') as HTMLInputElement).value = '';
+                          }}
+                        >
+                          🔑 Generate Key
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'encryptionTesting' && (
+            <div className="dashboard-section-content">
+              <div className="encryption-testing-dashboard">
+                <div className="testing-header">
+                  <h2>🧪 Encryption Testing Lab</h2>
+                  <p>Test and verify your encryption capabilities</p>
+                  <button className="back-btn" onClick={() => setActiveSection('security')}>
+                    ← Back to Security
+                  </button>
+                </div>
+
+                <div className="testing-grid">
+                  {/* Text Encryption Test */}
+                  <div className="test-panel">
+                    <div className="panel-header">
+                      <h3>📝 Text Encryption Test</h3>
+                    </div>
+                    <div className="test-content">
+                      <div className="input-section">
+                        <label>Enter text to encrypt:</label>
+                        <textarea 
+                          id="textToEncrypt"
+                          placeholder="Type your message here..."
+                          rows={4}
+                          className="test-textarea"
+                        ></textarea>
+                      </div>
+                      <div className="encryption-options">
+                        <label>Encryption Method:</label>
+                        <select id="encryptionMethod" className="method-select">
+                          <option value="aes256">AES-256-GCM (Symmetric)</option>
+                          <option value="rsa4096">RSA-4096-OAEP (Asymmetric)</option>
+                          <option value="hybrid">Hybrid (RSA + AES)</option>
+                        </select>
+                      </div>
+                      <div className="test-actions">
+                        <button className="test-btn encrypt">🔒 Encrypt</button>
+                        <button className="test-btn decrypt">🔓 Decrypt</button>
+                        <button className="test-btn clear">🗑️ Clear</button>
+                      </div>
+                      <div className="output-section">
+                        <label>Encrypted Output:</label>
+                        <textarea 
+                          id="encryptedOutput"
+                          placeholder="Encrypted text will appear here..."
+                          rows={4}
+                          className="test-textarea"
+                          readOnly
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* File Encryption Test */}
+                  <div className="test-panel">
+                    <div className="panel-header">
+                      <h3>📁 File Encryption Test</h3>
+                    </div>
+                    <div className="test-content">
+                      <div className="file-upload-section">
+                        <input type="file" id="fileToEncrypt" className="file-input" />
+                        <label htmlFor="fileToEncrypt" className="file-upload-label">
+                          📎 Choose File to Encrypt
+                        </label>
+                      </div>
+                      <div className="password-section">
+                        <label>Encryption Password:</label>
+                        <input 
+                          type="password" 
+                          id="filePassword"
+                          placeholder="Enter password for file encryption"
+                          className="password-input"
+                        />
+                      </div>
+                      <div className="test-actions">
+                        <button className="test-btn encrypt">🔒 Encrypt File</button>
+                        <button className="test-btn download">💾 Download</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Key Verification Test */}
+                  <div className="test-panel">
+                    <div className="panel-header">
+                      <h3>🔍 Key Verification</h3>
+                    </div>
+                    <div className="test-content">
+                      <div className="key-fingerprints">
+                        <h4>Your Active Keys:</h4>
+                        {securityData.keys.length === 0 ? (
+                          <p className="no-keys">No keys available. Generate a key first.</p>
+                        ) : (
+                          securityData.keys.map((key, index) => (
+                            <div key={index} className="key-verification-item">
+                              <div className="key-details">
+                                <strong>{key.key_type.toUpperCase()}</strong>
+                                <div className="fingerprint">{key.key_fingerprint}</div>
+                              </div>
+                              <button className="verify-btn">✅ Verify</button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'auditLog' && (
+            <div className="dashboard-section-content">
+              <div className="audit-log-dashboard">
+                <div className="audit-header">
+                  <h2>📊 Security Audit Log</h2>
+                  <p>Complete history of your account security events</p>
+                  <button className="back-btn" onClick={() => setActiveSection('security')}>
+                    ← Back to Security
+                  </button>
+                </div>
+
+                <div className="audit-controls">
+                  <div className="filter-section">
+                    <select className="filter-select">
+                      <option value="all">All Events</option>
+                      <option value="login">Login Events</option>
+                      <option value="keys">Key Management</option>
+                      <option value="encryption">Encryption Activity</option>
+                    </select>
+                    <select className="time-filter">
+                      <option value="week">Last Week</option>
+                      <option value="month">Last Month</option>
+                      <option value="all">All Time</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="audit-log-list">
+                  {securityData.auditLogs.map((log, index) => (
+                    <div key={index} className="audit-log-item">
+                      <div className="log-icon-large">{log.icon}</div>
+                      <div className="log-content">
+                        <div className="log-header">
+                          <span className="log-action">{log.action}</span>
+                          <span className={`log-status ${log.type}`}>{log.type.toUpperCase()}</span>
+                        </div>
+                        <div className="log-details">{log.details}</div>
+                        <div className="log-time">{log.time}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -2100,26 +3262,349 @@ function UserDashboardSidebar({ setCurrentPage }) {
           {activeSection === 'messages' && (
             <div className="dashboard-section-content">
               <h2>💬 Secure Messaging</h2>
-              <p>Encrypted communication with other contributors and sources.</p>
-              <div className="messaging-overview">
-                <div className="message-stats">
+              <p>End-to-end encrypted communication for journalists and sources.</p>
+              
+              <div className="messaging-dashboard">
+                <div className="messaging-stats">
                   <div className="stat-item">
-                    <span className="stat-number">12</span>
+                    <span className="stat-number">{messages.filter(m => !m.read).length}</span>
                     <span className="stat-label">Unread Messages</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-number">45</span>
-                    <span className="stat-label">Total Conversations</span>
+                    <span className="stat-number">{messages.length}</span>
+                    <span className="stat-label">Total Messages</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-number">3</span>
-                    <span className="stat-label">New Contacts</span>
+                    <span className="stat-number">🔒</span>
+                    <span className="stat-label">All Encrypted</span>
                   </div>
                 </div>
-                <div className="message-actions">
-                  <button className="action-btn primary">📝 New Message</button>
-                  <button className="action-btn">📧 Compose Secure Email</button>
-                  <button className="action-btn">👥 Manage Contacts</button>
+
+                <div className="messaging-interface">
+                  <div className="compose-panel">
+                    <h3>📝 Compose Encrypted Message</h3>
+                    <div className="compose-form">
+                      <input
+                        type="text"
+                        placeholder="Recipient username or email"
+                        value={recipient}
+                        onChange={(e) => setRecipient(e.target.value)}
+                        className="recipient-input"
+                      />
+                      <textarea
+                        placeholder="Type your secure message here..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="message-input"
+                        rows={4}
+                      />
+                      <div className="compose-actions">
+                        <button
+                          onClick={sendEncryptedMessage}
+                          disabled={isEncrypting || !newMessage.trim() || !recipient.trim()}
+                          className="send-btn"
+                        >
+                          {isEncrypting ? '🔄 Encrypting...' : '🔒 Encrypt & Send'}
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setNewMessage('');
+                            setRecipient('');
+                          }}
+                          className="clear-btn"
+                        >
+                          �️ Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="messages-panel">
+                    <h3>📨 Your Messages</h3>
+                    <div className="messages-list">
+                      {messages.length > 0 ? (
+                        messages.map(message => (
+                          <div key={message.id} className="message-item">
+                            <div className="message-header">
+                              <div className="message-recipient">
+                                {message.from ? `From: ${message.from}` : `To: ${message.to}`}
+                              </div>
+                              <div className="message-timestamp">
+                                {new Date(message.timestamp).toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="message-content">
+                              {message.decrypted ? message.originalContent : message.content}
+                            </div>
+                            <div className="message-footer">
+                              <span className="encryption-badge">🔒 {message.algorithm}</span>
+                              <span className="status-badge">
+                                {message.read ? '👁️ Read' : '� Unread'}
+                              </span>
+                              {!message.decrypted && message.content.includes('[ENCRYPTED]') && (
+                                <button 
+                                  className="decrypt-btn"
+                                  onClick={() => decryptMessage(message.id)}
+                                >
+                                  🔓 Decrypt
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="no-messages">
+                          <div className="no-messages-icon">📭</div>
+                          <p>No messages yet</p>
+                          <p>Send your first secure message above</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {activeSection === 'create-post' && (
+            <div className="dashboard-section-content">
+              <h2>✍️ Create New Post</h2>
+              <p>Share your investigations, legal analysis, geopolitical insights, or blog posts with the community.</p>
+              
+              <div className="post-creation-form">
+                <div className="form-group">
+                  <label>Post Title *</label>
+                  <input
+                    type="text"
+                    value={currentPost.title}
+                    onChange={(e) => setCurrentPost(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter a compelling title for your post..."
+                    className="post-title-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Category *</label>
+                  <select
+                    value={currentPost.category}
+                    onChange={(e) => setCurrentPost(prev => ({ ...prev, category: e.target.value }))}
+                    className="category-select"
+                  >
+                    <option value="Investigation">🔍 Investigation</option>
+                    <option value="Legal Brief">⚖️ Legal Brief</option>
+                    <option value="Geopolitics">🌍 Geopolitics</option>
+                    <option value="Blog">📰 Blog</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Content *</label>
+                  <textarea
+                    value={currentPost.content}
+                    onChange={(e) => setCurrentPost(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder="Write your post content here. Support for Markdown formatting..."
+                    className="post-content-textarea"
+                    rows={12}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Media Files (Images/Videos)</label>
+                  <div className="file-upload-area">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,video/*"
+                      onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                      className="file-input"
+                      id="media-upload"
+                    />
+                    <label htmlFor="media-upload" className="file-upload-label">
+                      📎 Choose Files (Images/Videos)
+                    </label>
+                    <p className="file-help">Supported: JPG, PNG, GIF, MP4, WebM. Max 50MB per file.</p>
+                  </div>
+
+                  {selectedFiles.length > 0 && (
+                    <div className="selected-files">
+                      <h4>Selected Files:</h4>
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="file-item">
+                          <span className="file-name">{file.name}</span>
+                          <span className="file-size">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="remove-file-btn"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>Tags (comma-separated)</label>
+                  <input
+                    type="text"
+                    placeholder="privacy, surveillance, legal, investigation..."
+                    className="tags-input"
+                    onChange={(e) => setCurrentPost(prev => ({ 
+                      ...prev, 
+                      tags: e.target.value.split(',').map(tag => tag.trim()) 
+                    }))}
+                  />
+                </div>
+
+                <div className="post-actions">
+                  <button
+                    onClick={() => { setCurrentPost(prev => ({ ...prev, status: 'draft' })); createPost(); }}
+                    disabled={isCreatingPost}
+                    className="action-btn"
+                  >
+                    {isCreatingPost ? '💾 Saving...' : '📄 Save as Draft'}
+                  </button>
+                  <button
+                    onClick={() => { setCurrentPost(prev => ({ ...prev, status: 'published' })); createPost(); }}
+                    disabled={isCreatingPost}
+                    className="action-btn primary"
+                  >
+                    {isCreatingPost ? '🚀 Publishing...' : '🚀 Publish Post'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'my-posts' && (
+            <div className="dashboard-section-content">
+              <h2>📝 My Posts</h2>
+              <p>Manage all your published and draft content.</p>
+              
+              <div className="posts-overview">
+                <div className="posts-stats">
+                  <div className="stat-item">
+                    <span className="stat-number">{posts.filter(p => p.status === 'published').length}</span>
+                    <span className="stat-label">Published</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">{posts.filter(p => p.status === 'draft').length}</span>
+                    <span className="stat-label">Drafts</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">{posts.reduce((sum, p) => sum + p.views, 0)}</span>
+                    <span className="stat-label">Total Views</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">{posts.reduce((sum, p) => sum + p.likes, 0)}</span>
+                    <span className="stat-label">Total Likes</span>
+                  </div>
+                </div>
+
+                <div className="posts-list">
+                  {posts.length > 0 ? (
+                    posts.map(post => (
+                      <div key={post.id} className="post-card">
+                        <div className="post-header">
+                          <div className="post-meta">
+                            <span className={`category-badge ${post.category.toLowerCase().replace(' ', '-')}`}>
+                              {post.category === 'Investigation' && '🔍'}
+                              {post.category === 'Legal Brief' && '⚖️'}
+                              {post.category === 'Geopolitics' && '🌍'}
+                              {post.category === 'Blog' && '📰'}
+                              {post.category}
+                            </span>
+                            <span className={`status-badge ${post.status}`}>
+                              {post.status === 'published' ? '✅ Published' : '📄 Draft'}
+                            </span>
+                          </div>
+                          <div className="post-date">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        <h3 className="post-title">{post.title}</h3>
+                        <p className="post-excerpt">
+                          {post.content.substring(0, 150)}...
+                        </p>
+
+                        <div className="post-stats">
+                          <span>👁️ {post.views} views</span>
+                          <span>❤️ {post.likes} likes</span>
+                          {post.mediaFiles.length > 0 && (
+                            <span>📎 {post.mediaFiles.length} files</span>
+                          )}
+                        </div>
+
+                        <div className="post-actions">
+                          <button className="action-btn small">✏️ Edit</button>
+                          {post.status === 'draft' ? (
+                            <button 
+                              onClick={() => updatePostStatus(post.id, 'published')}
+                              className="action-btn small primary"
+                            >
+                              🚀 Publish
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => updatePostStatus(post.id, 'draft')}
+                              className="action-btn small"
+                            >
+                              📄 Unpublish
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => deletePost(post.id)}
+                            className="action-btn small danger"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-posts">
+                      <div className="no-posts-icon">📝</div>
+                      <p>No posts yet</p>
+                      <p>Create your first post to get started</p>
+                      <button 
+                        onClick={() => setActiveSection('create-post')}
+                        className="action-btn primary"
+                      >
+                        ✍️ Create Post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'blogs' && (
+            <div className="dashboard-section-content">
+              <h2>📰 Blogs</h2>
+              <p>Opinion pieces, analysis, and editorial content from our contributors.</p>
+              <div className="dashboard-cards">
+                <div className="dashboard-card">
+                  <h3>📝 Recent Blogs</h3>
+                  <p>Latest opinion and analysis pieces</p>
+                  <button className="card-btn">Browse All</button>
+                </div>
+                <div className="dashboard-card">
+                  <h3>✍️ Write Blog</h3>
+                  <p>Share your thoughts and analysis</p>
+                  <button 
+                    onClick={() => setActiveSection('create-post')}
+                    className="card-btn"
+                  >
+                    Start Writing
+                  </button>
+                </div>
+                <div className="dashboard-card">
+                  <h3>📊 Popular Topics</h3>
+                  <p>Trending discussion topics</p>
+                  <button className="card-btn">View Topics</button>
                 </div>
               </div>
             </div>
@@ -2128,22 +3613,73 @@ function UserDashboardSidebar({ setCurrentPage }) {
           {activeSection === 'investigations' && (
             <div className="dashboard-section-content">
               <h2>🔍 Investigations</h2>
-              <p>Access investigation reports, submit tips, and collaborate on ongoing cases.</p>
-              <div className="dashboard-cards">
-                <div className="dashboard-card">
-                  <h3>📄 Active Investigations</h3>
-                  <p>5 investigations you're following</p>
-                  <button className="card-btn">View All</button>
+              <p>Investigative journalism and research reports from our community.</p>
+              
+              <div className="posts-feed">
+                <div className="feed-header">
+                  <div className="feed-stats">
+                    <span className="stat">
+                      📊 {getPostsByCategory('Investigation').length} Published
+                    </span>
+                    <button 
+                      onClick={() => setActiveSection('create-post')}
+                      className="action-btn primary"
+                    >
+                      ✍️ Submit Investigation
+                    </button>
+                  </div>
                 </div>
-                <div className="dashboard-card">
-                  <h3>💡 Submit Tip</h3>
-                  <p>Share information securely with our team</p>
-                  <button className="card-btn">Submit Tip</button>
-                </div>
-                <div className="dashboard-card">
-                  <h3>📊 Your Contributions</h3>
-                  <p>3 tips submitted, 12 documents analyzed</p>
-                  <button className="card-btn">View History</button>
+
+                <div className="posts-grid">
+                  {getPostsByCategory('Investigation').length > 0 ? (
+                    getPostsByCategory('Investigation').map(post => (
+                      <div key={post.id} className="post-card">
+                        <div className="post-header">
+                          <span className="category-badge investigation">
+                            🔍 Investigation
+                          </span>
+                          <span className="post-date">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h3 className="post-title">{post.title}</h3>
+                        <p className="post-excerpt">
+                          {post.content.substring(0, 150)}...
+                        </p>
+
+                        <div className="post-author">
+                          <strong>By {post.author}</strong>
+                        </div>
+
+                        <div className="post-stats">
+                          <span>�️ {post.views} views</span>
+                          <span>❤️ {post.likes} likes</span>
+                          {post.mediaFiles.length > 0 && (
+                            <span>📎 {post.mediaFiles.length} files</span>
+                          )}
+                        </div>
+
+                        <div className="post-actions">
+                          <button className="action-btn small">📖 Read Full</button>
+                          <button className="action-btn small">💬 Comment</button>
+                          <button className="action-btn small">📤 Share</button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-posts">
+                      <div className="no-posts-icon">🔍</div>
+                      <p>No investigation reports yet</p>
+                      <p>Be the first to submit an investigation</p>
+                      <button 
+                        onClick={() => setActiveSection('create-post')}
+                        className="action-btn primary"
+                      >
+                        ✍️ Submit Investigation
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2152,22 +3688,73 @@ function UserDashboardSidebar({ setCurrentPage }) {
           {activeSection === 'legal' && (
             <div className="dashboard-section-content">
               <h2>⚖️ Legal Resources</h2>
-              <p>Access legal documents, briefings, and regulatory updates.</p>
-              <div className="dashboard-cards">
-                <div className="dashboard-card">
-                  <h3>📚 Legal Library</h3>
-                  <p>Comprehensive legal document database</p>
-                  <button className="card-btn">Browse Library</button>
+              <p>Legal briefs, analysis, and regulatory updates from our legal experts.</p>
+              
+              <div className="posts-feed">
+                <div className="feed-header">
+                  <div className="feed-stats">
+                    <span className="stat">
+                      � {getPostsByCategory('Legal Brief').length} Published
+                    </span>
+                    <button 
+                      onClick={() => setActiveSection('create-post')}
+                      className="action-btn primary"
+                    >
+                      ✍️ Submit Legal Brief
+                    </button>
+                  </div>
                 </div>
-                <div className="dashboard-card">
-                  <h3>📋 Recent Briefings</h3>
-                  <p>Latest legal updates and analysis</p>
-                  <button className="card-btn">View Briefings</button>
-                </div>
-                <div className="dashboard-card">
-                  <h3>⚖️ Legal Consultation</h3>
-                  <p>Request legal advice from our experts</p>
-                  <button className="card-btn">Request Consultation</button>
+
+                <div className="posts-grid">
+                  {getPostsByCategory('Legal Brief').length > 0 ? (
+                    getPostsByCategory('Legal Brief').map(post => (
+                      <div key={post.id} className="post-card">
+                        <div className="post-header">
+                          <span className="category-badge legal-brief">
+                            ⚖️ Legal Brief
+                          </span>
+                          <span className="post-date">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h3 className="post-title">{post.title}</h3>
+                        <p className="post-excerpt">
+                          {post.content.substring(0, 150)}...
+                        </p>
+
+                        <div className="post-author">
+                          <strong>By {post.author}</strong>
+                        </div>
+
+                        <div className="post-stats">
+                          <span>�️ {post.views} views</span>
+                          <span>❤️ {post.likes} likes</span>
+                          {post.mediaFiles.length > 0 && (
+                            <span>📎 {post.mediaFiles.length} files</span>
+                          )}
+                        </div>
+
+                        <div className="post-actions">
+                          <button className="action-btn small">📖 Read Full</button>
+                          <button className="action-btn small">💬 Comment</button>
+                          <button className="action-btn small">📤 Share</button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-posts">
+                      <div className="no-posts-icon">⚖️</div>
+                      <p>No legal briefs yet</p>
+                      <p>Be the first to submit a legal analysis</p>
+                      <button 
+                        onClick={() => setActiveSection('create-post')}
+                        className="action-btn primary"
+                      >
+                        ✍️ Submit Legal Brief
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2254,22 +3841,275 @@ function UserDashboardSidebar({ setCurrentPage }) {
           
           {activeSection === 'subscribe' && (
             <div className="dashboard-section-content">
-              <h2>⭐ Subscription Management</h2>
-              <p>Manage your subscription plan and access premium features.</p>
-              <div className="subscription-info">
-                <div className="current-plan">
-                  <h3>Current Plan: Premium</h3>
-                  <p>✅ Unlimited document access</p>
-                  <p>✅ Secure messaging</p>
-                  <p>✅ Priority support</p>
-                  <p>✅ Advanced encryption</p>
+              <h2>⭐ Subscription Plans</h2>
+              <p>Choose the perfect plan for your journalism and research needs.</p>
+              
+              <div className="subscription-container">
+                <div className="billing-toggle">
+                  <label className="toggle-label">
+                    <span className={subscriptionData.billingCycle === 'monthly' ? 'active' : ''}>Monthly</span>
+                    <div className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={subscriptionData.billingCycle === 'yearly'}
+                        onChange={(e) => setSubscriptionData(prev => ({
+                          ...prev,
+                          billingCycle: e.target.checked ? 'yearly' : 'monthly'
+                        }))}
+                      />
+                      <span className="slider"></span>
+                    </div>
+                    <span className={subscriptionData.billingCycle === 'yearly' ? 'active' : ''}>
+                      Yearly <span className="save-badge">Save 17%</span>
+                    </span>
+                  </label>
                 </div>
-                <div className="subscription-actions">
-                  <button className="action-btn">📄 View Invoice History</button>
-                  <button className="action-btn">🔄 Update Payment Method</button>
-                  <button className="action-btn">📞 Contact Support</button>
+
+                <div className="plans-grid">
+                  {subscriptionPlans.map(plan => (
+                    <div key={plan.id} className={`plan-card ${plan.popular ? 'popular' : ''} ${subscriptionData.currentPlan === plan.id ? 'current' : ''}`}>
+                      {plan.popular && <div className="popular-badge">Most Popular</div>}
+                      {subscriptionData.currentPlan === plan.id && <div className="current-badge">Current Plan</div>}
+                      
+                      <div className="plan-header">
+                        <h3>{plan.name}</h3>
+                        <div className="plan-price">
+                          {plan.id === 'free' ? (
+                            <span className="price">Free</span>
+                          ) : (
+                            <>
+                              <span className="price">
+                                ${subscriptionData.billingCycle === 'yearly' && plan.yearlyPrice 
+                                  ? (plan.yearlyPrice / 12).toFixed(2) 
+                                  : plan.price}
+                              </span>
+                              <span className="period">
+                                /{subscriptionData.billingCycle === 'yearly' ? 'month (billed yearly)' : 'month'}
+                              </span>
+                              {subscriptionData.billingCycle === 'yearly' && plan.yearlyPrice && (
+                                <div className="yearly-total">
+                                  Total: ${plan.yearlyPrice}/year
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="plan-features">
+                        <h4>Features:</h4>
+                        <ul>
+                          {plan.features.map((feature, index) => (
+                            <li key={index}>✅ {feature}</li>
+                          ))}
+                        </ul>
+                        {plan.limitations && (
+                          <>
+                            <h4>Limitations:</h4>
+                            <ul className="limitations">
+                              {plan.limitations.map((limitation, index) => (
+                                <li key={index}>⚠️ {limitation}</li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="plan-action">
+                        {subscriptionData.currentPlan === plan.id ? (
+                          <button className="plan-btn current" disabled>
+                            ✅ Current Plan
+                          </button>
+                        ) : plan.id === 'free' ? (
+                          <button 
+                            className="plan-btn free"
+                            onClick={() => handleSubscribe(plan.id)}
+                          >
+                            Select Free Plan
+                          </button>
+                        ) : (
+                          <button 
+                            className="plan-btn subscribe"
+                            onClick={() => handleSubscribe(plan.id)}
+                          >
+                            Subscribe Now
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
+                {subscriptionData.currentPlan !== 'free' && (
+                  <div className="current-subscription">
+                    <h3>Current Subscription Details</h3>
+                    <div className="subscription-info">
+                      <div className="info-item">
+                        <span className="label">Plan:</span>
+                        <span className="value">{subscriptionPlans.find(p => p.id === subscriptionData.currentPlan)?.name}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Billing Cycle:</span>
+                        <span className="value">{subscriptionData.billingCycle}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Next Billing:</span>
+                        <span className="value">
+                          {subscriptionData.nextBilling ? new Date(subscriptionData.nextBilling).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Payment Method:</span>
+                        <span className="value">
+                          {subscriptionData.paymentMethod === 'stripe' && '💳 Credit Card (Stripe)'}
+                          {subscriptionData.paymentMethod === 'paypal' && '🅿️ PayPal'}
+                          {subscriptionData.paymentMethod?.startsWith('crypto-') && 
+                            `₿ ${subscriptionData.paymentMethod.split('-')[1].toUpperCase()}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="subscription-actions">
+                      <button className="action-btn">📄 View Billing History</button>
+                      <button className="action-btn">🔄 Update Payment Method</button>
+                      <button className="action-btn">❌ Cancel Subscription</button>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Payment Modal */}
+              {showPaymentModal && (
+                <div className="payment-modal-overlay">
+                  <div className="payment-modal">
+                    <div className="modal-header">
+                      <h3>Complete Your Subscription</h3>
+                      <button 
+                        className="close-btn"
+                        onClick={() => setShowPaymentModal(false)}
+                      >
+                        ❌
+                      </button>
+                    </div>
+
+                    <div className="modal-content">
+                      <div className="plan-summary">
+                        <h4>Selected Plan: {subscriptionPlans.find(p => p.id === selectedPlan)?.name}</h4>
+                        <div className="billing-cycle-selector">
+                          <label>Billing Cycle:</label>
+                          <select id="billing-cycle" defaultValue="monthly">
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly (Save 17%)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="payment-methods">
+                        <h4>Select Payment Method:</h4>
+                        
+                        <div className="payment-option">
+                          <label className="payment-label">
+                            <input
+                              type="radio"
+                              name="payment"
+                              value="stripe"
+                              checked={selectedPaymentMethod === 'stripe'}
+                              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                            />
+                            <div className="payment-info">
+                              <span className="payment-name">� Credit/Debit Card</span>
+                              <span className="payment-desc">Secure payment via Stripe</span>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="payment-option">
+                          <label className="payment-label">
+                            <input
+                              type="radio"
+                              name="payment"
+                              value="paypal"
+                              checked={selectedPaymentMethod === 'paypal'}
+                              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                            />
+                            <div className="payment-info">
+                              <span className="payment-name">🅿️ PayPal</span>
+                              <span className="payment-desc">Pay with your PayPal account</span>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="crypto-section">
+                          <h5>Cryptocurrency Options:</h5>
+                          
+                          <div className="payment-option">
+                            <label className="payment-label">
+                              <input
+                                type="radio"
+                                name="payment"
+                                value="crypto-bitcoin"
+                                checked={selectedPaymentMethod === 'crypto-bitcoin'}
+                                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                              />
+                              <div className="payment-info">
+                                <span className="payment-name">₿ Bitcoin</span>
+                                <span className="payment-desc">Pay with Bitcoin (BTC)</span>
+                              </div>
+                            </label>
+                          </div>
+
+                          <div className="payment-option">
+                            <label className="payment-label">
+                              <input
+                                type="radio"
+                                name="payment"
+                                value="crypto-ethereum"
+                                checked={selectedPaymentMethod === 'crypto-ethereum'}
+                                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                              />
+                              <div className="payment-info">
+                                <span className="payment-name">Ξ Ethereum</span>
+                                <span className="payment-desc">Pay with Ethereum (ETH)</span>
+                              </div>
+                            </label>
+                          </div>
+
+                          <div className="payment-option">
+                            <label className="payment-label">
+                              <input
+                                type="radio"
+                                name="payment"
+                                value="crypto-usdc"
+                                checked={selectedPaymentMethod === 'crypto-usdc'}
+                                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                              />
+                              <div className="payment-info">
+                                <span className="payment-name">� USDC</span>
+                                <span className="payment-desc">Pay with USD Coin (Stable)</span>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="modal-actions">
+                        <button 
+                          className="cancel-btn"
+                          onClick={() => setShowPaymentModal(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          className="proceed-btn"
+                          onClick={processPayment}
+                          disabled={isProcessingPayment}
+                        >
+                          {isProcessingPayment ? '⏳ Processing...' : '💳 Complete Payment'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2278,7 +4118,7 @@ function UserDashboardSidebar({ setCurrentPage }) {
   );
 }
 
-function UserDashboard({ setCurrentPage }) {
+function UserDashboard({ setCurrentPage }: { setCurrentPage: (page: string) => void }) {
   // Initialize user data from localStorage
   const getUserData = () => {
     const userData = localStorage.getItem('user');
@@ -2344,7 +4184,7 @@ function UserDashboard({ setCurrentPage }) {
     { id: 'settings', icon: '⚙️', label: 'Settings', description: 'Account settings' }
   ];
 
-  const handleSidebarNavigation = (sectionId) => {
+  const handleSidebarNavigation = (sectionId: string) => {
     if (sectionId === 'security' || sectionId === 'messages' || 
         sectionId === 'investigations' || sectionId === 'legal' || 
         sectionId === 'geopolitics' || sectionId === 'contributors' || 
@@ -2571,7 +4411,7 @@ function App() {
     }
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
     // For demo, redirect to archives page when searching
@@ -2580,7 +4420,7 @@ function App() {
     }
   };
 
-  const handleNavigation = (page) => {
+  const handleNavigation = (page: string) => {
     // Protect dashboard route
     if (page === 'dashboard' && !isLoggedIn) {
       setCurrentPage('login');

@@ -1,6 +1,6 @@
 # Contributing to Sovereign Media Platform
 
-Thank you for your interest in contributing to the Sovereign Media Platform! This document outlines the development process, coding standards, and security considerations for contributors.
+Thank you for your interest in contributing to the smp-civic Media Platform! This document outlines the development process, coding standards, and security considerations for contributors.
 
 ## 🛡️ Security First
 
@@ -217,7 +217,7 @@ docker compose -f docker-compose.staging.yml up -d
 - [React Performance Patterns](https://kentcdodds.com/blog/optimize-react-re-renders)
 - [Post-Quantum Cryptography](https://pqcrypto.org/)
 
-## 🏆 Recognition
+##  Recognition
 
 Contributors will be recognized in:
 - GitHub contributor graph
