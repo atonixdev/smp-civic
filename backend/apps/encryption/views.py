@@ -522,6 +522,6 @@ def encryption_status(request):
             'symmetric': ['AES-256-GCM'],
             'asymmetric': ['RSA-4096-OAEP'],
             'e2ee': ['Curve25519'],
-            'post_quantum': ['Kyber1024', 'Dilithium5'] if encryption_manager.POST_QUANTUM_AVAILABLE else []
+            'post_quantum': ['Kyber1024', 'Dilithium5'] if POST_QUANTUM_AVAILABLE else []
         }
     })
