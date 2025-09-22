@@ -1,6 +1,6 @@
 # 🛡️ Sovereign Media Platform for Civic Journalism
 
-AtonixCorp's Sovereign Media Platform is a secure, subscription-based publishing system built for journalists, researchers, and civic leaders. It empowers contributors to publish investigative reports, legal summaries, and geopolitical analysis with editorial-grade polish and uncompromising security.
+The Sovereign Media Platform (SMP Civic) is a secure, subscription-based publishing system built for journalists, researchers, and civic leaders. It empowers contributors to publish investigative reports, legal summaries, and geopolitical analysis with editorial-grade polish and uncompromising security.
 
 ## 🎯 Mission
 
@@ -187,10 +187,10 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 
 ## 🆘 Support
 
-- **Documentation**: [docs.atonixcorp.org/smp-civic](https://docs.atonixcorp.org/smp-civic)
+- **Documentation**: [docs.smpcivic.org](https://docs.smpcivic.org)
 - **Issues**: [GitHub Issues](https://github.com/atonixdev/smp-civic/issues)
-- **Security**: security@atonixcorp.org
-- **General**: support@atonixcorp.org
+- **Security**: security@smpcivic.org
+- **General**: support@smpcivic.org
 
 ## 🏆 Acknowledgments
 
@@ -201,4 +201,4 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 
 ---
 
-**Built with ❤️ by AtonixCorp for a more transparent and accountable world.**
+**Built with ❤️ by the SMP Civic community for a more transparent and accountable world.**

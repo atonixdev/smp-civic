@@ -29,6 +29,7 @@ urlpatterns = [
     # API endpoints
     path('api/v1/auth/', include('apps.authentication.urls')),
     path('api/v1/core/', include('apps.core.urls')),
+    path('api/v1/encryption/', include('apps.encryption.urls')),
 ]
 
 # Serve media files in development

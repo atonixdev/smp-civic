@@ -10,7 +10,7 @@ Before contributing, please understand that this platform handles sensitive jour
 - Never commit secrets, API keys, or sensitive data
 - Use secure coding practices and follow OWASP guidelines
 - All crypto implementations must use established libraries
-- Report security vulnerabilities privately to security@atonixcorp.org
+- Report security vulnerabilities privately to security@smpcivic.org
 
 ## 📋 Development Setup
 
@@ -188,7 +188,7 @@ docker compose -f docker-compose.staging.yml up -d
 - Performance impact
 
 ### Security Vulnerability
-- Private disclosure via security@atonixcorp.org
+- Private disclosure via security@smpcivic.org
 - CVE assessment and scoring
 - Coordinated disclosure timeline
 
@@ -203,7 +203,7 @@ docker compose -f docker-compose.staging.yml up -d
 ### Communication Channels
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: General questions and ideas
-- **Email**: security@atonixcorp.org for security issues
+- **Email**: security@smpcivic.org for security issues
 
 ## 📖 Learning Resources
 

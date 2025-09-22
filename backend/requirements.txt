@@ -16,9 +16,9 @@ cryptography==41.0.7
 pynacl==1.5.0
 bcrypt==4.1.2
 
-# Post-quantum cryptography
-liboqs-python==0.14.1
-pqcrypto==0.3.0
+# Post-quantum cryptography (optional - will install if available)
+# liboqs-python==0.14.1
+# pqcrypto==0.3.0
 
 # Database & ORM enhancements
 django-extensions==3.2.3

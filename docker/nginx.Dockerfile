@@ -17,7 +17,7 @@ RUN mkdir -p /etc/ssl/certs
 RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/ssl/certs/nginx-selfsigned.key \
     -out /etc/ssl/certs/nginx-selfsigned.crt \
-    -subj "/C=US/ST=State/L=City/O=AtonixCorp/CN=localhost"
+    -subj "/C=US/ST=State/L=City/O=SMP Civic/CN=localhost"
 
 # Create directories for static and media files
 RUN mkdir -p /var/www/static /var/www/media

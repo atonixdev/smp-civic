@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Sovereign Media Platform for Civic Journalism - Frontend",
   "private": true,
-  "author": "AtonixCorp",
+  "author": "SMP Civic Community",
   "license": "AGPL-3.0",
   "dependencies": {
     "react": "^18.2.0",

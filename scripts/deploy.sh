@@ -172,7 +172,7 @@ setup_ssl() {
         # Generate self-signed certificate for development
         if [ ! -f ssl/cert.pem ] || [ ! -f ssl/key.pem ]; then
             openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes \
-                -subj "/C=US/ST=State/L=City/O=AtonixCorp/CN=smp-civic.local"
+                -subj "/C=US/ST=State/L=City/O=SMP Civic/CN=smp-civic.local"
             print_success "SSL certificates generated"
         else
             print_success "SSL certificates already exist"

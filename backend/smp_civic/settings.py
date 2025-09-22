@@ -64,6 +64,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.core',
     'apps.authentication',
+    'apps.encryption',
     # 'apps.publishing',
     # 'apps.security',
     # 'apps.legal',
@@ -252,7 +253,7 @@ EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@atonixcorp.org')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@smpcivic.org')
 
 # Logging Configuration
 LOGGING = {
@@ -329,8 +330,8 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'CONTACT': {
-        'name': 'AtonixCorp',
-        'email': 'api@atonixcorp.org',
+        'name': 'SMP Civic',
+        'email': 'api@smpcivic.org',
     },
     'LICENSE': {
         'name': 'AGPL-3.0',
