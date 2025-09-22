@@ -67,7 +67,12 @@ class EncryptedContent(models.Model):
     encryption_metadata = models.JSONField(default=dict, help_text="Nonces, tags, etc.")
     
     # Access control
-    authorized_users = models.ManyToManyField(User, through='ContentAccess', related_name='accessible_content')
+    authorized_users = models.ManyToManyField(
+        User, 
+        through='ContentAccess', 
+        through_fields=('content', 'user'),
+        related_name='accessible_content'
+    )
     
     # Audit trail
     created_at = models.DateTimeField(auto_now_add=True)
@@ -207,7 +212,12 @@ class SecureVault(models.Model):
     encryption_algorithm = models.CharField(max_length=50, default='aes-256-gcm')
     
     # Access control
-    collaborators = models.ManyToManyField(User, through='VaultAccess', related_name='accessible_vaults')
+    collaborators = models.ManyToManyField(
+        User, 
+        through='VaultAccess', 
+        through_fields=('vault', 'user'),
+        related_name='accessible_vaults'
+    )
     
     # Vault settings
     is_shared = models.BooleanField(default=False)
