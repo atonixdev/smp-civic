@@ -63,6 +63,19 @@ interface Post {
   likes: number;
 }
 
+interface RegionalNewsItem {
+  title: string;
+  subtitle: string;
+  reports: {
+    title: string;
+    summary: string;
+    date: string;
+    tags: string[];
+    impact: string;
+  }[];
+  keyDevelopments: string[];
+}
+
 // Security Dashboard Component
 function SecurityDashboard() {
   const [encryptionStatus, setEncryptionStatus] = useState({
@@ -154,7 +167,7 @@ function SecurityDashboard() {
     }
 
     setIsEncrypting(true);
-    const log = (message) => {
+    const log = (message: string) => {
       setEncryptionLog(prev => [...prev, {
         timestamp: new Date().toLocaleTimeString(),
         message
@@ -234,7 +247,7 @@ function SecurityDashboard() {
   };
 
   const generateNewKeys = async () => {
-    const log = (message) => {
+    const log = (message: string) => {
       setEncryptionLog(prev => [...prev, {
         timestamp: new Date().toLocaleTimeString(),
         message
@@ -262,7 +275,10 @@ function SecurityDashboard() {
       const fingerprint = await window.crypto.subtle.digest('SHA-256', publicKey);
       const fingerprintArray = new Uint8Array(fingerprint);
       const fingerprintHex = Array.from(fingerprintArray)
-        .map(b => b.toString(16).padStart(2, '0'))
+        .map(b => {
+          const hex = b.toString(16);
+          return hex.length === 1 ? '0' + hex : hex;
+        })
         .join('');
       
       const newKey = {
@@ -944,8 +960,8 @@ function GeopoliticsPage() {
   ];
 
   const filteredNews = selectedRegion === 'all' 
-    ? Object.entries(regionalNews) 
-    : [[selectedRegion, regionalNews[selectedRegion]]];
+    ? (Object as any).entries(regionalNews) 
+    : [[selectedRegion, (regionalNews as any)[selectedRegion]]];
 
   return (
     <div className="page">
@@ -993,7 +1009,7 @@ function GeopoliticsPage() {
         {/* Regional Analysis Section */}
         <div className="regional-analysis">
           <h2>🗺️ Regional Analysis</h2>
-          {filteredNews.map(([regionId, regionData]) => (
+          {filteredNews.map(([regionId, regionData]: [string, any]) => (
             <div key={regionId} className="region-section">
               <div className="region-header">
                 <h3>{regionData.title}</h3>
@@ -1003,7 +1019,7 @@ function GeopoliticsPage() {
               <div className="region-content">
                 <div className="latest-reports">
                   <h4>📰 Latest Reports</h4>
-                  {regionData.reports.map((report, index) => (
+                  {regionData.reports.map((report: any, index: number) => (
                     <div key={index} className={`report-card ${report.impact}`}>
                       <div className="report-header">
                         <h5>{report.title}</h5>
@@ -1015,7 +1031,7 @@ function GeopoliticsPage() {
                       <div className="report-meta">
                         <span className="report-date">{new Date(report.date).toLocaleDateString()}</span>
                         <div className="report-tags">
-                          {report.tags.map(tag => (
+                          {report.tags.map((tag: string) => (
                             <span key={tag} className="tag">{tag}</span>
                           ))}
                         </div>
@@ -1027,7 +1043,7 @@ function GeopoliticsPage() {
                 <div className="key-developments">
                   <h4>🔍 Key Developments</h4>
                   <ul>
-                    {regionData.keyDevelopments.map((development, index) => (
+                    {regionData.keyDevelopments.map((development: string, index: number) => (
                       <li key={index}>{development}</li>
                     ))}
                   </ul>
